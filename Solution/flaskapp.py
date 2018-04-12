@@ -32,92 +32,112 @@ app = Flask(__name__)
 # Define what to do when a user hits the index route
 @app.route("/")
 def home():
-	print("Server received request for 'Home' page...")
-	return (
-	f"Hawaii Weather Flask Tutorial:<br/>"
-	f"Available Routes:<br/>"
-	f"/about:<br/>"
-	
-	f"/api/v1.0/precipitation:<br/>"
-	f"/api/v1.0/stations:<br/>")
-	
-	
+    print("Server received request for 'Home' page...")
+    return (
+    f"Hawaii Weather Flask Tutorial:<br/>"
+    f"Available Routes:<br/>"
+    f"/about:<br/>"
+    
+    f"/api/v1.0/precipitation:<br/>"
+    f"/api/v1.0/stations:<br/>"
+    f"/api/v1.0/tobs:<br/>")
+    
+    
 # 4. Define what to do when a user hits the /about route
 @app.route("/about")
 def about():
-	print("Server received request for 'About' page...")
-	return "This is a simple demostration of connecting a \n SQL lite database to a web app"
-	
-	
+    print("Server received request for 'About' page...")
+    return "This is a simple demostration of connecting a \n SQL lite database to a web app"
+    
+    
 @app.route("/api/v1.0/precipitation")
 def prcp(year):
-	results = session.query(measures.date, measures.prcp).\
-	filter(func.strftime("%y", measures.date) == year).all()
-	prcp_recs = []
-	for rec in results:
-		date_dict = {}
-		date_dict['date'] = rec.prcp
-		prcp_rec.append(date_dict)
-	return jsonify(prcp_recs)
-	
-	
+    results = session.query(measures.date, measures.prcp).\
+    filter(func.strftime("%y", measures.date) == year).all()
+    prcp_recs = []
+    for rec in results:
+        date_dict = {}
+        date_dict['date'] = rec.prcp
+        prcp_rec.append(date_dict)
+    return jsonify(prcp_recs)
+    
+    
 @app.route("/api/v1.0/stations")
 
 def stations():
-	"""
-* Return a json list of stations from the dataset.
-"""
-	results = session.query(stations.name).all()
-	records = list()
-	for name in results:
-		records.append(name)
-		
-	return jsonify(records)
-	
+    """
+    * Return a json list of stations from the dataset.
+    """
+    results = session.query(stations.name).all()
+    records = list()
+    for name in results:
+        records.append(name)
+        
+    return jsonify(records)
+    
 @app.route("/api/v1.0/tobs")
-"""
-* Return a json list of Temperature Observations (tobs) for the previous year
-"""
 def tobs(year):
-	results = session.query(measures.date, measures.tobs).\
-	filter(func.strftime("%y", measures.date) == year).all()
-	tobs_recs = []
-	for rec in results:
-		date_dict = {}
-		date_dict['date'] = rec.tobs
-		tobs_rec.append(date_dict)
-	return jsonify(tobs_recs)
-	
-	
-	
+    """
+    Return a json list of Temperature Observations (tobs) for the previous year
+    """
+    results = session.query(measures.date, measures.tobs).\
+        filter(func.strftime("%y", measures.date) == year).all()
+    tobs_recs = []
+    for rec in results:
+        date_dict = {}
+        date_dict['date'] = rec.tobs
+        tobs_rec.append(date_dict)
+    return jsonify(tobs_recs)
+    
+    
+    
 @app.route("/api/v1.0/<start>")
-"""
-* Return a json list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
-
-  * When given the start only, calculate `TMIN`, `TAVG`, and `TMAX` for all dates greater than and equal to the start date.
-
-  * When given the start and the end date, calculate the `TMIN`, `TAVG`, and `TMAX` for dates between the start and end date inclusive.
-"""
-def calc_temp(start,end):
-	if end:
-		results = session.query(measures.date,            measures.tobs)./filter(func.strftime(measures.date) < end)./
-		filter(func.striftime(measures.date) > start).all()
-	else:
-		results = session.query(measures.date,            measures.tobs)./
-		filter(func.striftime(measures.date) > start).all()
-		
-		
-		
-		
+def calc_temp(start):
+    results = session.query(measures.tobs).\
+        filter(func.striftime(measures.date) > start).all()
+    avg = np.mean(results)
+    min_ = np.min(results)
+    max_ = np.max(results)
+    final_json = {	
+                    "start_date":start,
+                    "TMIN":min_,
+                    "TAVG":avg,
+                    "TMAX":max_
+                }
+    return jsonify(final_json)
+        
+        
 @app.route("/api/v1.0/<start>/<end>")
-"""
-* Return a json list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+def calc_temp_start_end(start,end):
+    """
 
-  * When given the start only, calculate `TMIN`, `TAVG`, and `TMAX` for all dates greater than and equal to the start date.
+    * When given the start only, calculate `TMIN`, `TAVG`, and `TMAX` for all dates greater than and equal to the start date.
 
-  * When given the start and the end date, calculate the `TMIN`, `TAVG`, and `TMAX` for dates between the start and end date inclusive.
-"""
+    * When given the start and the end date, calculate the `TMIN`, `TAVG`, and `TMAX` for dates between the start and end date inclusive.
+    
+    Arguments:
+        start {[date]} -- [start date for a trip to Hawaii]
+        end {[date]} -- [end date for a trip, must be after start]
+    
+    Returns:
+        [json] -- [a json list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.]
+    """
+
+    results = session.query(measures.tobs).\
+        filter(func.strftime(measures.date) < end).\
+        filter(func.striftime(measures.date) > start).all()
+    avg = np.mean(results)
+    min_ = np.min(results)
+    max_ = np.max(results)
+    final_json = {	
+                    "start_date":start,
+                    "end_date":end,
+                    "TMIN":min_,
+                    "TAVG":avg,
+                    "TMAX":max_
+                }
+    return jsonify(final_json)
 
 if __name__ == "__main__":
-	app.run(debug=True)
+    app.run(debug=True)
 
