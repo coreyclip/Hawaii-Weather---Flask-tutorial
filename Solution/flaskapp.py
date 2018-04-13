@@ -40,7 +40,9 @@ def home():
     
     f"/api/v1.0/precipitation:<br/>"
     f"/api/v1.0/stations:<br/>"
-    f"/api/v1.0/tobs:<br/>")
+    f"/api/v1.0/tobs:<br/>"
+    f'/api/v1.0/<start>:<br/>'
+    f"/api/v1.0/<start>/<end>:</br>")
     
     
 # 4. Define what to do when a user hits the /about route
@@ -58,7 +60,7 @@ def prcp(year):
     for rec in results:
         date_dict = {}
         date_dict['date'] = rec.prcp
-        prcp_rec.append(date_dict)
+        prcp_recs.append(date_dict)
     return jsonify(prcp_recs)
     
     
@@ -86,7 +88,7 @@ def tobs(year):
     for rec in results:
         date_dict = {}
         date_dict['date'] = rec.tobs
-        tobs_rec.append(date_dict)
+        tobs_recs.append(date_dict)
     return jsonify(tobs_recs)
     
     

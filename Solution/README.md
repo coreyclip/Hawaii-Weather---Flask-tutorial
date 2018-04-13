@@ -157,6 +157,4 @@ Now that you have completed your initial analysis, design a Flask api based on t
 
 * Use Flask `jsonify` to convert your api data into a valid json response object.
 
-## Copyright
 
-Trilogy Education Services © 2017. All Rights Reserved.
